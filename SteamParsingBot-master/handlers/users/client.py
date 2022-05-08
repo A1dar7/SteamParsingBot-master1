@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from loader import dp
 
 from keyboards.inline import ConfirmData
-from keyboards.inline.Select_country import select_country, Country
+from keyboards.inline import Choice_country
 
 from states.new_item import New_Item
 
@@ -27,24 +27,33 @@ async def get_link(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=New_Item.New_item_price)
 async def get_price(message: types.Message, state: FSMContext):
-    price = float(message.text)
-    await state.update_data(Price=price)
-    await New_Item.next()
-    await message.answer('Выберите страну', reply_markup=seleсt_country)
+    if message.text.lstrip("-").isdigit():
+        if float(message.text) <= 0:
+            await message.answer('Цена должна быть больше 0!\nПовторите ввод')
+        else:
+            price = float(message.text)
+            await state.update_data(Price=price)
+            await New_Item.next()
+            await message.answer('Выберите страну', reply_markup=Choice_country.choice_country)
+    else:
+        await message.answer('Только числа чувак')
 
 
-@dp.callback_query_handler(Country.filter(), state=New_Item.Country)
-async def to_sho_country(message: types.Message, state: FSMContext, callback_data: dict):
-    print(callback_data['country'])
+@dp.callback_query_handler(Choice_country.Country.filter(), state=New_Item.Country)
+async def to_sho_country(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    strana = callback_data['country']
+    await state.update_data(Сountry=strana)
     card_data = await state.get_data()
-    await message.answer(card_data, reply_markup=ConfirmData.confirm_data)
+    await call.message.answer(card_data, reply_markup=ConfirmData.confirm_data)
     logging.info(card_data)
+    await New_Item.next()
 
 
 @dp.callback_query_handler(text='confirm_data', state=New_Item.Confirm)
 async def confirm(call: types.CallbackQuery, state: FSMContext):
-    # await state.reset_state()
+    await call.answer('Понял, принял')
     await call.message.answer('Выполнено, ожидайте оповещения!')
+    await state.reset_state()
 
 
 @dp.callback_query_handler(text='reset_data', state=New_Item.Confirm)

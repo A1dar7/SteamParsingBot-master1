@@ -2,7 +2,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 Country = CallbackData("id", "country")
-select_country = InlineKeyboardMarkup(inline_keyboard=[
+choice_country = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="RU", callback_data=Country.new(country='RU'))
     ],
